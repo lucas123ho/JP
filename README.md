@@ -23,6 +23,7 @@ Make pages with a template and a JSON
 JSON Page works through a Rest API allocated on localhost on port 3000
 ### Create page
 1. To create a new page you will need an HTML template, which should be in the templates folder. *(./templates/{{YOUR_TEMPLATE_NAME}}.html)*
+
 **Template example**
 ```html
 <!-- ./templates/blog.html -->
