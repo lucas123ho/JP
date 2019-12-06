@@ -38,6 +38,6 @@ app.post('/page', (req, res) => {
 })
 
 
-app.listen(3000, () => {
+app.listen(config.port, () => {
     console.log('http://localhost:3000')
 });
