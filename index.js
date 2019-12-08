@@ -8,14 +8,17 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const path = require('path');
 
+const { union } = require('lodash')
+
 const watch = require('node-watch');
 
 require.extensions['.php'] = compiler
 require.extensions['.html'] = compiler
-
 function compiler(module, filename) {
     module.exports = fs.readFileSync(filename, 'utf8');
 };
+
+const root = path.resolve(`public`);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -28,8 +31,6 @@ app.post('/page', (req, res) => {
 
         const templateTxt = require(`./templates/${template}.${format}`);
         const output = Mustache.render(templateTxt, data);
-        
-        const root = path.resolve(`public`);
 
         const cleanTitle = title.toLowerCase().replace(/ /g, '-');
         const directory = `${root}/${category}/${cleanTitle}`;
@@ -38,7 +39,9 @@ app.post('/page', (req, res) => {
         const meta = JSON.stringify({ last_update: new Date(), ...req.body });
         
         mkdirp.sync(directory);
-        fs.writeFileSync(`${root}/meta.json`, JSON.stringify([ ...metaGlobal, { title: cleanTitle, template } ]));
+        metaGlobal[template] = union(metaGlobal[template], [`${category}/${cleanTitle}`]);
+        fs.writeFileSync(`${root}/meta.json`, JSON.stringify(metaGlobal));
+        
         fs.writeFileSync(`${directory}/index.${format}`, output);
         fs.writeFileSync(`${directory}/meta.json`, meta);
     
@@ -61,10 +64,15 @@ app.listen(config.port, () => {
 watch('templates', { recursive: true }, function(evt, name) {
     const arrayName = name.split('\\');
     const template = arrayName[arrayName.length-1].split('.')[0];
-    console.log(template);
+    alterPageByTemplate(template);
 });
 
-function alterTemplate(template){
-    
+function alterPageByTemplate(template){
+    const paths = require('./public/meta.json')[template];
+    paths.forEach(path => {
+        const meta = require(`./public/${path}/meta.json`);
+        console.log(path)
+        fs.writeFileSync(`${root}/${path}/index.html`, Mustache.render(require(`./templates/${template}.html`), meta.data));
+    })
 }
 
