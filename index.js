@@ -50,7 +50,7 @@ app.post('/page', (req, res) => {
             url: `${config.url}/${category}/${cleanTitle}`
         })
     }else{
-        res.json({
+        res.status(401).json({
             success: false,
             message: "Ivalid password"
         });
